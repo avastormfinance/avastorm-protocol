@@ -28,7 +28,7 @@
     "web3": "^1.2.11"
   },
   "resolutions": {
-    "scrypt.js": "https://registry.npmjs.org/@avastorm-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz",
+    "scrypt.js": "https://registry.npmjs.org/@compound-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz",
     "**/ganache-core": "github:avastorm-finance/ganache-core.git#jflatow/unbreak-fork"
   }
 }

@@ -1,0 +1,109 @@
+#!/usr/bin/env -S yarn repl -s
+
+PrintTransactionLogs
+
+-- Token holder addresses for mocking
+Alias AltHolder "0x7587caefc8096f5f40acb83a09df031a018c66ec"
+Alias CUSDCHolder "0xF977814e90dA44bFA03b6295A0616a897441aceC" -- Binance 8
+Alias DaiHolder "0x5f65f7b609678448494De4C87521CdF6cEf1e932" -- Gemini 4
+
+Alias Timelock "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"
+
+-- Fork the block prior to proposal 62 executing
+Web3Fork "https://mainnet-eth.avastorm.finance/@13322797" (AltHolder CUSDCHolder DaiHolder Timelock)
+UseConfigs mainnet
+
+-- Disable USDC ALT rewards so that these rewards won't mess with our results
+Send Timelock 1e18
+From Timelock (Comptroller SetAltSpeed cUSDC 0)
+
+-- Send USDC from CUSDCHolder to other accounts
+From CUSDCHolder (Erc20 USDC Transfer Geoff 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Torrey 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Coburn 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Jared 1000000e6)
+
+-- Send DAI from DaiHolder to other accounts
+From DaiHolder (Erc20 DAI Transfer Coburn 1000000e18)
+From DaiHolder (Erc20 DAI Transfer Jared 1000000e18)
+
+-- Pre Proposal 62: Deposit collateral and borrow SUSHI
+From Geoff (Erc20 USDC Approve (Address cUSDC) 1000000e6)
+From Geoff (AToken cUSDC Mint 1000000e6)
+From Geoff (Comptroller EnterMarkets (cUSDC))
+From Geoff (AToken cSUSHI Borrow 1000e18)
+
+From Torrey (Erc20 USDC Approve (Address cUSDC) 1000000e6)
+From Torrey (AToken cUSDC Mint 1000000e6)
+From Torrey (Comptroller EnterMarkets (cUSDC))
+From Torrey (AToken cSUSHI Borrow 1000e18)
+
+-- Execute proposal 62
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+MineBlock
+
+-- Claim ALT for Geoff
+Comptroller ClaimAlt Geoff
+
+-- Check Geoff ALT rewards - invalid accrual & ALT sent
+Assert Equal (Erc20 ALT TokenBalance Geoff) (988792275103122749560) -- Huge amount (988 ALT) -> Bug
+Assert Equal (Comptroller AltAccrued Geoff) (0)
+
+-- Cause Torrey to accrue ALT without claiming
+From Torrey (AToken cSUSHI Borrow 1e18) -- Causes ALT to be distributed but not claimed
+
+-- Deploy latest Comptroller
+ComptrollerImpl Deploy Standard NewComptroller
+
+-- Delegate and propose update (containing bug fix)
+From AltHolder (Alt Delegate AltHolder)
+From AltHolder (GovernorBravo GovernorBravo Propose "Upgrade Comptroller" [(Address Unitroller) (Address NewComptroller)] [0 0] ["_setPendingImplementation(address)" "_become(address)"] [[(Address NewComptroller)] [(Address Unitroller)]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From AltHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+MineBlock
+
+-- Claim ALT for Torrey
+Comptroller ClaimAlt Torrey
+
+-- Check Torrey ALT balance changes - invalid accrual & ALT not sent
+Assert Equal (Erc20 ALT TokenBalance Torrey) (0)
+Assert Equal (Comptroller AltAccrued Torrey) (988792086947769887785) -- Huge amount (988 ALT) -> Bug
+
+-- Post bug fix: Deposit collateral (DAI) and borrow SUSHI - block ALT sending
+From Coburn (Erc20 DAI Approve (Address cDAI) 1000000e18)
+From Coburn (AToken cDAI Mint 1000000e18)
+From Coburn (Comptroller EnterMarkets (cDAI))
+From Coburn (AToken cSUSHI Borrow 1000e18)
+
+-- Post bug fix: Deposit collateral (DAI) and borrow BAT - don't block ALT sending
+From Jared (Erc20 DAI Approve (Address cDAI) 1000000e18)
+From Jared (AToken cDAI Mint 1000000e18)
+From Jared (Comptroller EnterMarkets (cDAI))
+From Jared (AToken cBAT Borrow 1000e18)
+
+-- Accrue rewards (if any)
+MineBlock
+AdvanceBlocks 14000
+
+-- Claim ALT for Coburn
+Comptroller ClaimAltInMarkets Coburn (cDAI cSUSHI)
+
+-- Claim ALT for Jared
+Comptroller ClaimAltInMarkets Jared (cDAI cBAT)
+
+-- Check Coburn ALT balance changes - valid accrual & ALT not sent (claim in affected market)
+Assert Equal (Erc20 ALT TokenBalance Coburn) (0)
+Assert Equal (Comptroller AltAccrued Coburn) (211455443766873733) -- 0.21 ALT accrued
+
+-- Check Jared ALT balance changes - valid accrual & ALT sent (no claim in affected market)
+Assert Equal (Erc20 ALT TokenBalance Jared) (212379370589809042) -- 0.21 ALT claimed
+Assert Equal (Comptroller AltAccrued Jared) (0)
+
+Print "Done"

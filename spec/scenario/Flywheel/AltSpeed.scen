@@ -1,0 +1,231 @@
+-- Tests setting ALT (borrow/supply) speeds work properly
+-- Ensures setting various ALT speeds doesn't break the ALT distribution mechanisms
+-- Note: Ensuring the right amounts of ALT distributed is out of scope of these scenario tests (this is in the scope of flywheel scenario tests)
+
+Macro FlywheelComptroller price=1.0 altInitAmount=5000000e18
+    Unitroller Deploy
+    PriceOracle Deploy Fixed price
+    PriceOracleProxy Deploy Admin (PriceOracle Address) (Address Zero) (Address Zero) (Address Zero) (Address Zero) (Address Zero)
+    -- Deploy Comptroller
+    ComptrollerImpl Deploy Scenario ComptrollerScen
+    Unitroller SetPendingImpl ComptrollerScen
+    ComptrollerImpl ComptrollerScen Become
+    -- Configure Comptroller
+    Comptroller SetPriceOracle (PriceOracleProxy Address)
+    Comptroller SetCloseFactor 0.5
+    Comptroller LiquidationIncentive 1.1
+    -- Add markets
+    NewAToken ZRX cZRX
+    NewAToken BAT cBAT
+    Support cZRX collateralFactor:0.5
+    Support cBAT collateralFactor:0.5
+    -- Setup ALT token
+    Erc20 Deploy Standard ALT "ALT Token" 18
+    Give (Address Comptroller) altInitAmount ALT
+    Comptroller Send "setAltAddress(address)" (Address ALT)
+
+Macro InitUsage
+    Prep Geoff 100e18 ZRX cZRX
+    Mint Geoff 50e18 cZRX--tokenbalance = 50e18 / 2e9 = 2.5e10
+    Prep Coburn Some BAT cBAT
+    Mint Coburn 6e18 cBAT--tokenbalance = 6e18 / 2e9 = 3e9
+    EnterMarkets Coburn cBAT
+    Borrow Coburn 1e18 cZRX
+
+Macro UseEnvironment1
+    FlywheelComptroller
+    InitUsage
+
+Macro ClaimAltForAll
+    Comptroller ClaimAlt Geoff
+    Comptroller ClaimAlt Coburn
+
+Macro VerifyAltSpeeds aToken supplySpeed borrowSpeed
+    Assert Equal (Comptroller AltSupplySpeed aToken) supplySpeed
+    Assert Equal (Comptroller AltBorrowSpeed aToken) borrowSpeed
+
+Macro SetAndVerifyAltSpeeds aToken supplySpeed borrowSpeed
+    Comptroller SetAltSpeeds (aToken) ((Number supplySpeed)) ((Number borrowSpeed))
+    VerifyAltSpeeds aToken supplySpeed borrowSpeed
+    MineBlock -- Ensures we accrue ALT
+    ClaimAltForAll -- Ensures setting the ALT speeds didn't break the distribution mechanisms
+
+Test "ALT supply speed can be set"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+
+Test "ALT supply speed can be set then unset"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+
+Test "ALT supply speed can be set then set again"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+
+Test "ALT supply speed can be set w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+
+Test "ALT supply speed can be set then unset w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+    SetAndVerifyAltSpeeds cZRX 0e18 1e18
+
+Test "ALT supply speed can be set then set, unset, and set again w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+    SetAndVerifyAltSpeeds cZRX 0e18 1e18
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+
+Test "ALT borrow speed can be set"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+
+Test "ALT borrow speed can be set then unset"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+
+Test "ALT borrow speed can be set then set again"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+
+Test "ALT borrow speed can be set w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+
+Test "ALT borrow speed can be set then unset w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+    SetAndVerifyAltSpeeds cZRX 1e18 0e18
+
+Test "ALT borrow speed can be set then set, unset, and set again w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+    SetAndVerifyAltSpeeds cZRX 1e18 0e18
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+
+Test "Many different ALT supply speeds can be set"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+    SetAndVerifyAltSpeeds cBAT 3e18 0e18
+    VerifyAltSpeeds cZRX 2e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT supply speeds can be set then unset"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+    SetAndVerifyAltSpeeds cBAT 3e18 0e18
+    VerifyAltSpeeds cZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 0e18
+    VerifyAltSpeeds cZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT supply speeds can be set, unset, and set again"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 0e18
+    SetAndVerifyAltSpeeds cBAT 3e18 0e18
+    VerifyAltSpeeds cZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 0e18
+    VerifyAltSpeeds cZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 5e18 0e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 6e18 0e18
+    VerifyAltSpeeds cZRX 5e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT supply speeds can be set w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+    SetAndVerifyAltSpeeds cBAT 3e18 1e18
+    VerifyAltSpeeds cZRX 2e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT supply speeds can be set then unset w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+    SetAndVerifyAltSpeeds cBAT 3e18 1e18
+    VerifyAltSpeeds cZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 1e18
+    VerifyAltSpeeds cZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 1e18
+    VerifyAltSpeeds cBAT 0e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT supply speeds can be set, unset, and set again w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 2e18 1e18
+    SetAndVerifyAltSpeeds cBAT 3e18 1e18
+    VerifyAltSpeeds cZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 1e18
+    VerifyAltSpeeds cZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 1e18
+    VerifyAltSpeeds cBAT 0e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 5e18 1e18
+    VerifyAltSpeeds cBAT 0e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 6e18 1e18
+    VerifyAltSpeeds cZRX 5e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+    SetAndVerifyAltSpeeds cBAT 0e18 3e18
+    VerifyAltSpeeds cZRX 0e18 2e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set then unset"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+    SetAndVerifyAltSpeeds cBAT 0e18 3e18
+    VerifyAltSpeeds cZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 0e18
+    VerifyAltSpeeds cZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set, unset, and set again"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 0e18 2e18
+    SetAndVerifyAltSpeeds cBAT 0e18 3e18
+    VerifyAltSpeeds cZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 0e18
+    VerifyAltSpeeds cZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 0e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 0e18 5e18
+    VerifyAltSpeeds cBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 0e18 6e18
+    VerifyAltSpeeds cZRX 0e18 5e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+    SetAndVerifyAltSpeeds cBAT 1e18 3e18
+    VerifyAltSpeeds cZRX 1e18 2e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set then unset w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+    SetAndVerifyAltSpeeds cBAT 1e18 3e18
+    VerifyAltSpeeds cZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 1e18 0e18
+    VerifyAltSpeeds cZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 1e18 0e18
+    VerifyAltSpeeds cBAT 1e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ALT borrow speeds can be set, unset, and set again w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyAltSpeeds cZRX 1e18 2e18
+    SetAndVerifyAltSpeeds cBAT 1e18 3e18
+    VerifyAltSpeeds cZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 1e18 0e18
+    VerifyAltSpeeds cZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 1e18 0e18
+    VerifyAltSpeeds cBAT 1e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cZRX 1e18 5e18
+    VerifyAltSpeeds cBAT 1e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyAltSpeeds cBAT 1e18 6e18
+    VerifyAltSpeeds cZRX 1e18 5e18 -- Ensure these speeds weren't changed

@@ -1,0 +1,114 @@
+-- Tests for the grants and math patch
+
+Macro DeployComptroller price=1.0
+    Unitroller Deploy
+    PriceOracle Deploy Fixed price
+    PriceOracleProxy Deploy Admin (PriceOracle Address) (Address Zero) (Address Zero) (Address Zero) (Address Zero) (Address Zero)
+    ComptrollerImpl Deploy Scenario ComptrollerScen
+    Unitroller SetPendingImpl ComptrollerScen
+    ComptrollerImpl ComptrollerScen Become
+    Comptroller SetPriceOracle (PriceOracleProxy Address)
+    Comptroller SetCloseFactor 0.5
+    Comptroller LiquidationIncentive 1.1
+
+Macro SetupMarkets
+    NewAToken ZRX cZRX
+    NewAToken BAT cBAT
+    Support cZRX collateralFactor:0.5
+    Support cBAT collateralFactor:0.5
+
+Macro SetupAltToken altInitAmount=5000000e18
+    Erc20 Deploy Standard ALT "ALT Token" 18
+    Give (Address Comptroller) altInitAmount ALT
+    Comptroller Send "setAltAddress(address)" (Address ALT)
+
+-- NewComptroller, but with markets listed so that we can make them alt markets in constructor
+Macro FlywheelComptroller price=1.0 borrowRate=0.000005 altInitAmount=5000000e18
+    DeployComptroller price
+    SetupMarkets
+    SetupAltToken altInitAmount
+
+Macro InitUsage
+    Prep Geoff 100e18 ZRX cZRX
+    Mint Geoff 50e18 cZRX--tokenbalance = 50e18 / 2e9 = 2.5e10
+    Prep Coburn Some BAT cBAT
+    Mint Coburn 6e18 cBAT--tokenbalance = 6e18 / 2e9 = 3e9
+    EnterMarkets Coburn cBAT
+    Borrow Coburn 1e18 cZRX
+
+Macro InitUsageAndSpeeds
+    InitUsage
+    Comptroller SetAltSpeeds (cZRX cBAT) (1 1) (1 1)
+
+Test "ALT can be granted in combination with liquidity rewards"
+    FlywheelComptroller
+    InitUsageAndSpeeds
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 0
+    FastForward 1000 Blocks
+    Comptroller ClaimAlt Geoff
+    Comptroller Send "_grantAlt(address,uint256)" (Address Geoff) 1000
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 2000 -- 1000 (grant) + 1000 (ALT supply rewards)
+
+Test "ALT can be granted"
+    -- Can be granted once
+    FlywheelComptroller
+    InitUsageAndSpeeds
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 0
+    Comptroller Send "_grantAlt(address,uint256)" (Address Geoff) 1000
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 1000
+    -- Assert Log AltGranted (recipient (Address Geoff)) (amount "1000")
+    -- Can be granted multiple times
+    Comptroller Send "_grantAlt(address,uint256)" (Address Geoff) 2000
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 3000
+
+Test "ALT can be streamed to contributors"
+    FlywheelComptroller
+    InitUsageAndSpeeds
+    Assert Equal (Comptroller AltAccrued Torrey) 0
+    Assert Equal (Erc20 ALT TokenBalance Torrey) 0
+    Comptroller Send "_setContributorAltSpeed(address,uint256)" (Address Torrey) 300
+    -- Assert Log ContributorAltSpeedUpdated (recipient (Address Torrey)) (amount "300")
+    FastForward 1000 Blocks
+    -- Just claimAlt does not receive ALT
+    Comptroller ClaimAlt Torrey
+    Assert Equal (Comptroller AltAccrued Torrey) 0
+    Assert Equal (Erc20 ALT TokenBalance Torrey) 0
+    -- Calling updateContributorRewards and then claimAlt receives ALT
+    Comptroller UpdateContributorRewards Torrey
+    Assert Equal (Comptroller AltAccrued Torrey) 300000
+    Comptroller ClaimAlt Torrey
+    Assert Equal (Comptroller AltAccrued Torrey) 0
+    Assert Equal (Erc20 ALT TokenBalance Torrey) 300000
+
+Test "ALT can be streamed in combination with liquidity rewards"
+    FlywheelComptroller
+    InitUsageAndSpeeds
+    Comptroller Send "_setContributorAltSpeed(address,uint256)" (Address Geoff) 300
+    FastForward 1000 Blocks
+    -- Just claimAlt does not receive ALT
+    Comptroller UpdateContributorRewards Geoff
+    Assert Equal (Comptroller AltAccrued Geoff) 300000
+    Comptroller ClaimAlt Geoff
+    Assert Equal (Comptroller AltAccrued Geoff) 0
+    Assert Equal (Erc20 ALT TokenBalance Geoff) 301000 -- 300000 (contributer grant) + 1000 (ALT supply rewards)
+
+Test "ALT streaming can be changed for contributors"
+    FlywheelComptroller
+    InitUsageAndSpeeds
+    Comptroller Send "_setContributorAltSpeed(address,uint256)" (Address Torrey) 300
+    FastForward 1000 Blocks
+    Comptroller Send "_setContributorAltSpeed(address,uint256)" (Address Torrey) 600
+    FastForward 1000 Blocks
+    Comptroller UpdateContributorRewards Torrey
+    Comptroller ClaimAlt Torrey
+    Assert Equal (Comptroller AltAccrued Torrey) 0
+    Assert Equal (Erc20 ALT TokenBalance Torrey) 900000
+    Comptroller Send "_setContributorAltSpeed(address,uint256)" (Address Torrey) 0
+    FastForward 2000 Blocks
+    Assert Equal (Comptroller AltAccrued Torrey) 0
+    Assert Equal (Erc20 ALT TokenBalance Torrey) 900000

@@ -60,7 +60,7 @@ describe('AToken', function () {
   let root, liquidator, borrower, accounts;
   let aToken, aTokenCollateral;
 
-  const protocolSeizeShareMantissa = 2.8e16; // 2.8%
+  const protocolSeizeShareMantissa = 5e16; // 5%
   const exchangeRate = etherExp(.2);
 
   const protocolShareTokens = seizeTokens.multipliedBy(protocolSeizeShareMantissa).dividedBy(etherExp(1));

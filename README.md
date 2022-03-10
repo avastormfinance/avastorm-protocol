@@ -7,12 +7,12 @@ The Avastorm Protocol is an Ethereum smart contract for supplying or borrowing a
 
 Before getting started with this repo, please read:
 
-* The [Avastorm Whitepaper](https://avastorm.finance/documents/Avastorm.Whitepaper.pdf), describing how Avastorm works
+* The [Avastorm Whitepaper](https://avastorm.org/documents/Avastorm.Whitepaper.pdf), describing how Avastorm works
 * The [Avastorm Protocol Specification](https://github.com/avastorm-finance/avastorm-protocol/tree/master/docs/AvastormProtocol.pdf), explaining in plain English how the protocol operates
 
-For questions about interacting with Avastorm, please visit [our Discord server](https://avastorm.finance/discord).
+For questions about interacting with Avastorm, please visit [our Discord server](https://avastorm.org/discord).
 
-For security concerns, please visit [https://avastorm.finance/security](https://avastorm.finance/security) or email [security@avastorm.finance](mailto:security@avastorm.finance).
+For security concerns, please visit [https://avastorm.org/security](https://avastorm.org/security) or email [security@avastorm.org](mailto:security@avastorm.org).
 
 Contributing
 ============
@@ -280,8 +280,8 @@ docker run --env ACCOUNT=0x$(cat ~/.ethereum/rinkeby) avastormfinance/avastorm-p
 Discussion
 ----------
 
-For any concerns with the protocol, open an issue or visit us on [Discord](https://avastorm.finance/discord) to discuss.
+For any concerns with the protocol, open an issue or visit us on [Discord](https://avastorm.org/discord) to discuss.
 
-For security concerns, please email [security@avastorm.finance](mailto:security@avastorm.finance).
+For security concerns, please email [security@avastorm.org](mailto:security@avastorm.org).
 
 _© Copyright 2020, Avastorm Labs_

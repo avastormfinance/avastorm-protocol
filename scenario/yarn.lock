@@ -421,23 +421,23 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@avastorm-finance/sol-coverage@^4.0.10-alpha.7":
+"@compound-finance/sol-coverage@^4.0.10-alpha.7":
   version "4.0.10-alpha.7"
-  resolved "https://registry.yarnpkg.com/@avastorm-finance/sol-coverage/-/sol-coverage-4.0.10-alpha.7.tgz#7459f23a9934f987e865bc1717a33da137dae696"
+  resolved "https://registry.yarnpkg.com/@compound-finance/sol-coverage/-/sol-coverage-4.0.10-alpha.7.tgz#7459f23a9934f987e865bc1717a33da137dae696"
   integrity sha512-UtBAc50sdv2KEnG3y5d2Vm/WvN5UvnhhZZ73BSYut67DNu4l22kOvlgivgO+Gd4cfTHRNhoy7cy0mZuUBomDfQ==
   dependencies:
     "@0x/subproviders" "^6.1.1"
     "@0x/typescript-typings" "^5.1.1"
-    "@avastorm-finance/sol-tracing-utils" "^7.1.0-alpha.7"
+    "@compound-finance/sol-tracing-utils" "^7.1.0-alpha.7"
     "@types/minimatch" "^3.0.3"
     ethereum-types "^3.2.0"
     lodash "^4.17.11"
     minimatch "^3.0.4"
     web3-provider-engine "14.0.6"
 
-"@avastorm-finance/sol-tracing-utils@7.1.0-alpha.7", "@avastorm-finance/sol-tracing-utils@^7.1.0-alpha.7":
+"@compound-finance/sol-tracing-utils@7.1.0-alpha.7", "@compound-finance/sol-tracing-utils@^7.1.0-alpha.7":
   version "7.1.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@avastorm-finance/sol-tracing-utils/-/sol-tracing-utils-7.1.0-alpha.7.tgz#ad4b06320fb2db115d3266ca8fdfdd68e6d57080"
+  resolved "https://registry.yarnpkg.com/@compound-finance/sol-tracing-utils/-/sol-tracing-utils-7.1.0-alpha.7.tgz#ad4b06320fb2db115d3266ca8fdfdd68e6d57080"
   integrity sha512-7yrJsjg7U6zwrDu09FTRN2ziQAv140dBZnQEasiXGy2UPhv17hToKow/bXtrR233ULQ3xHNR9hlpm2jatE5xVQ==
   dependencies:
     "@0x/dev-utils" "^3.3.0"
@@ -4389,8 +4389,8 @@ eth-saddle@^0.1.21:
   integrity sha512-XsswjrWJaQnixrQk7ycL8fOUoqqyRbkSo9TkGJrgxNNcYjtF6/wFOjxgfwxxd3FIQWLCuAF4jcO6RpFRiEAh4Q==
   dependencies:
     "@0x/subproviders" "^6.0.0"
-    "@avastorm-finance/sol-coverage" "^4.0.10-alpha.7"
-    "@avastorm-finance/sol-tracing-utils" "7.1.0-alpha.7"
+    "@compound-finance/sol-coverage" "^4.0.10-alpha.7"
+    "@compound-finance/sol-tracing-utils" "7.1.0-alpha.7"
     "@types/jest" "^24.0.15"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "5.2.0"
@@ -5346,9 +5346,9 @@ functional-red-black-tree@^1.0.1, functional-red-black-tree@~1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-ganache-core@^2.10.2, ganache-core@^2.6.0, "ganache-core@github:avastorm-finance/ganache-core.git#jflatow/unbreak-fork":
+ganache-core@^2.10.2, ganache-core@^2.6.0, "ganache-core@github:compound-finance/ganache-core.git#jflatow/unbreak-fork":
   version "2.10.2"
-  resolved "https://codeload.github.com/avastorm-finance/ganache-core/tar.gz/4c7e063f6d423e1b3850f4cb328029e819670a64"
+  resolved "https://codeload.github.com/compound-finance/ganache-core/tar.gz/4c7e063f6d423e1b3850f4cb328029e819670a64"
   dependencies:
     abstract-leveldown "3.0.0"
     async "2.6.2"
@@ -9523,9 +9523,9 @@ scrypt-js@3.0.1, scrypt-js@^3.0.1:
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
-scrypt.js@^0.3.0, "scrypt.js@https://registry.npmjs.org/@avastorm-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz":
+scrypt.js@^0.3.0, "scrypt.js@https://registry.npmjs.org/@compound-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz":
   version "0.6.3"
-  resolved "https://registry.npmjs.org/@avastorm-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz#707128975a68333df615f4098b51f82d983f7416"
+  resolved "https://registry.npmjs.org/@compound-finance/ethereumjs-wallet/-/ethereumjs-wallet-0.6.3.tgz#707128975a68333df615f4098b51f82d983f7416"
   dependencies:
     aes-js "^3.1.1"
     bs58check "^2.1.2"

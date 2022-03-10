@@ -47,5 +47,5 @@ Test "Able to seize tokens with a malicious listed aToken"
     Assert Equal (Erc20 cZRX TokenBalance Geoff) 50e9
     Expect Changes (Erc20 cZRX TokenBalance Geoff) -1e9
     -- effective liquidation reward is 1-.028 = 0.972 after protocolSeizeShare (liq incentive = 1)
-    Expect Changes (Erc20 cZRX TokenBalance Torrey) +0.972e9
+    Expect Changes (Erc20 cZRX TokenBalance Torrey) +0.950e9
     EvilSeize cEVL 1e9 cZRX seizer:Torrey seizee:Geoff

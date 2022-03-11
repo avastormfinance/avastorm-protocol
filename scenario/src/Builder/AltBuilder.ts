@@ -50,7 +50,7 @@ export async function buildAlt(
 
     new Fetcher<{ account: AddressV }, TokenData>(
       `
-      #### Comp
+      #### Alt
 
       * "Alt Deploy account:<Address>" - Deploys Alt Token
         * E.g. "Alt Deploy Geoff"

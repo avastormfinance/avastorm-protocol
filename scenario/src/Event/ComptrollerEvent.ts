@@ -760,9 +760,9 @@ export function comptrollerCommands() {
       (world, from, {comptroller}) => refreshAltSpeeds(world, from, comptroller)
     ),
     new Command<{comptroller: Comptroller, holder: AddressV}>(`
-      #### ClaimComp
+      #### ClaimAlt
 
-      * "Comptroller ClaimAlt <holder>" - Claims comp
+      * "Comptroller ClaimAlt <holder>" - Claims Alt
       * E.g. "Comptroller ClaimAlt Geoff
       `,
       "ClaimAlt",
@@ -775,7 +775,7 @@ export function comptrollerCommands() {
     new Command<{comptroller: Comptroller, holder: AddressV, aTokens: AToken[]}>(`
       #### ClaimAltInMarkets
 
-      * "Comptroller ClaimAlt <holder> (<AToken> ...)" - Claims comp
+      * "Comptroller ClaimAlt <holder> (<AToken> ...)" - Claims Alt
       * E.g. "Comptroller ClaimAltInMarkets Geoff (cDAI cBAT)
       `,
       "ClaimAltInMarkets",
@@ -800,7 +800,7 @@ export function comptrollerCommands() {
       (world, from, {comptroller, contributor}) => updateContributorRewards(world, from, comptroller, contributor.val)
     ),
     new Command<{comptroller: Comptroller, recipient: AddressV, amount: NumberV}>(`
-      #### GrantComp
+      #### GrantAlt
 
       * "Comptroller GrantAlt <recipient> <amount>" - Grants ALT to a recipient
       * E.g. "Comptroller GrantAlt Geoff 1e18

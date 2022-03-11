@@ -804,7 +804,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
 
   new Command<{ event: EventV }>(
     `
-      #### Comp
+      #### Alt
 
       * "Alt ...event" - Runs given alt event
       * E.g. "Alt Deploy"

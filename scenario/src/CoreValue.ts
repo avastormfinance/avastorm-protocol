@@ -969,7 +969,7 @@ const fetchers = [
   ),
   new Fetcher<{ res: Value }, Value>(
     `
-      #### Comp
+      #### Alt
 
       * "Alt ...altArgs" - Returns Alt value
     `,

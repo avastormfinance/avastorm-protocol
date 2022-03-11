@@ -286,7 +286,7 @@ describe.skip('AltWheelFuzzTest', () => {
 
     let indexSnapshot = altSupplyIndexSnapshots[account];
     if (indexSnapshot !== undefined) {
-      // if had prev snapshot,  accrue some comp
+      // if had prev snapshot,  accrue some Alt
       altAccruedWithIndex[account] = get(altAccruedWithIndex[account]).plus(
         balances[account].times(altSupplyIndex.minus(indexSnapshot))
       );

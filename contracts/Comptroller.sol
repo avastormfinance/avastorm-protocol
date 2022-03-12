@@ -1462,6 +1462,6 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
      * @return The address of ALT
      */
     function getAltAddress() public view returns (address) {
-        return 0xc00e94Cb662C3520282E6f5717214004A7f26888;
+        return 0x9aa8b23d91aC5b022184308576B7aa808E8826dB;
     }
 }
